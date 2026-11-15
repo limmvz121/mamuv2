@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MovieID — Streaming Film & Series HD</title>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            void: '#090414',
+            deep: '#0f0722',
+            plum: '#1e0b36',
+            neon: '#8b5cf6',
+            orchid: '#a855f7',
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Latar belakang gradasi ungu gelap khas MovieID */
+    body {
+      background: linear-gradient(135deg, #090414 0%, #0f0722 45%, #1e0b36 100%);
+      background-attachment: fixed;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    /* Kustomisasi Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090414;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #6d28d9, #a855f7);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #c084fc;
+    }
+
+    /* Efek Glassmorphism & Glow */
+    .glass-nav {
+      background: rgba(15, 7, 34, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-card {
+      background: rgba(24, 11, 46, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(139, 92, 246, 0.18);
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .glass-card:hover {
+      border-color: rgba(192, 132, 252, 0.65);
+      box-shadow: 0 12px 32px -8px rgba(139, 92, 246, 0.42);
+      transform: translateY(-6px);
+    }
+
+    .purple-gradient-btn {
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+      background-size: 200% 200%;
+      transition: all 0.3s ease;
+    }
+    .purple-gradient-btn:hover {
+      background-position: right center;
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.6);
+    }
+
+    .text-gradient {
+      background: linear-gradient(to right, #c084fc, #a855f7, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Hide scrollbar for horizontal genre pills */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-purple-500 selection:text-white">
+
+  <!-- Ambient Purple Orbs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-purple-700/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+    <div class="absolute top-1/3 -right-32 w-[28rem] h-[28rem] bg-indigo-700/15 rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-fuchsia-800/15 rounded-full blur-[130px]"></div>
+  </div>
+
+  <!-- Top API Status Bar -->
+  <div class="bg-[#090414]/90 border-b border-purple-500/15 px-4 py-1.5 text-xs">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span id="apiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="apiStatusText" class="text-purple-200/80 font-medium">Memeriksa koneksi lk21-api...</span>
+        <span id="apiEndpointBadge" class="hidden sm:inline-block px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-500/20 text-[11px] text-purple-300 font-mono">http://localhost:8080</span>
+      </div>
+      <div class="flex items-center gap-3 text-purple-300/80">
+        <button onclick="openSettingsModal('api')" class="hover:text-white underline decoration-purple-500/50 underline-offset-2 transition">
+          Konfigurasi Server API
+        </button>
+        <span class="text-purple-700">•</span>
+        <button onclick="openDeployGuideModal()" class="hover:text-purple-300 flex items-center gap-1 transition">
+          <i data-lucide="terminal" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span>Panduan Deploy LK21-API</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Sticky Header / Navbar -->
+  <header class="sticky top-0 z-40 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 md:h-20 gap-3">
+        
+        <!-- Logo MovieID -->
+        <div class="flex items-center gap-3 shrink-0">
+          <button onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl text-purple-200 hover:bg-purple-800/30 transition" aria-label="Menu">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+          </button>
+          <a href="#" onclick="switchCategory('home'); return false;" class="flex items-center gap-2.5 group">
+            <div class="w-10 h-10 rounded-xl purple-gradient-btn flex items-center justify-center shadow-lg shadow-purple-600/30 group-hover:scale-105 transition">
+              <i data-lucide="play" class="w-5 h-5 text-white fill-white ml-0.5"></i>
+            </div>
+            <div>
+              <span class="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-white">Movie<span class="text-gradient">ID</span></span>
+              <span class="hidden sm:block text-[10px] uppercase tracking-widest text-purple-300/70 -mt-1">LK21 Stream Engine</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden lg:flex items-center gap-1 xl:gap-2" id="desktopNav">
+          <button data-nav="home" onclick="switchCategory('home')" class="nav-btn px-3.5 py-2 rounded-xl text-sm font-semibold bg-purple-600/25 text-white border border-purple-500/40 transition">Beranda</button>
+          <button data-nav="movies" onclick="switchCategory('movies')" class="nav-btn px-3.5 py-2 rounded-xl text-sm font-medium text-purple-200/80 hover:text-white hover:bg-purple-800/25 transition">Film Terbaru</button>
+          <button data-nav="popular" onclick="switchCategory('popular')" class="nav-btn px-3.5 py-2 rounded-xl text-sm font-medium text-purple-200/80 hover:text-white hover:bg-purple-800/25 transition">Populer</button>
+          <button data-nav="top-rated" onclick="switchCategory('top-rated')" class="nav-btn px-3.5 py-2 rounded-xl text-sm font-medium text-purple-200/80 hover:text-white hover:bg-purple-800/25 transition">Top Rated</button>
+          <button data-nav="series" onclick="switchCategory('series')" class="nav-btn px-3.5 py-2 rounded-xl text-sm font-medium text-purple-200/80 hover:text-white hover:bg-purple-800/25 transition">Series</button>
+          <button data-nav="watchlist" onclick="switchCategory('watchlist')" class="nav-btn px-3.5 py-2 rounded-xl text-sm font-medium text-purple-200/80 hover:text-white hover:bg-purple-800/25 transition flex items-center gap-1.5">
+            <span>Watchlist</span>
+            <span id="watchlistCountBadge" class="px-1.5 py-0.2 text-[11px] rounded-full bg-purple-600 text-white font-bold">0</span>
+          </button>
+        </nav>
+
+        <!-- Search & Account Controls -->
+        <div class="flex items-center gap-2 sm:gap-3 flex-1 max-w-md justify-end">
+          <!-- Real-time Search Input -->
+          <div class="relative flex-1 max-w-xs">
+            <i data-lucide="search" class="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Cari film, series, anime..." 
+              autocomplete="off"
+              class="w-full pl-10 pr-8 py-2 rounded-xl bg-[#160a2c]/90 border border-purple-500/30 text-sm text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30 transition"
+            />
+            <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Account & Settings Trigger -->
+          <button onclick="openSettingsModal('profile')" class="flex items-center gap-2 p-1.5 sm:pr-3 rounded-xl bg-purple-950/70 hover:bg-purple-900/70 border border-purple-500/30 transition shrink-0 group" title="Pengaturan Akun & API">
+            <div id="headerAvatar" class="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center text-sm font-bold text-white shadow">
+              🎬
+            </div>
+            <div class="hidden md:block text-left">
+              <p id="headerUserName" class="text-xs font-semibold text-white leading-tight max-w-[90px] truncate">Sobat MovieID</p>
+              <p id="headerQualityBadge" class="text-[10px] text-purple-300 leading-tight">1080p HD</p>
+            </div>
+            <i data-lucide="settings" class="w-4 h-4 text-purple-300 group-hover:rotate-90 transition-transform duration-300 hidden sm:block"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileNavMenu" class="hidden lg:hidden border-t border-purple-500/20 bg-[#110726]/95 px-4 pt-3 pb-4 space-y-1.5">
+      <button onclick="switchCategory('home'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-purple-600/20">Beranda</button>
+      <button onclick="switchCategory('movies'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-purple-200 hover:bg-purple-800/30">Film Terbaru (/movies)</button>
+      <button onclick="switchCategory('popular'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-purple-200 hover:bg-purple-800/30">Populer (/popular/movies)</button>
+      <button onclick="switchCategory('top-rated'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-purple-200 hover:bg-purple-800/30">Top Rated (/top-rated/movies)</button>
+      <button onclick="switchCategory('series'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-purple-200 hover:bg-purple-800/30">Series (/series)</button>
+      <button onclick="switchCategory('watchlist'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-purple-200 hover:bg-purple-800/30 flex justify-between items-center">
+        <span>Daftar Tontonan (Watchlist)</span>
+        <span id="mobileWatchlistCount" class="px-2 py-0.5 text-xs rounded-full bg-purple-600 text-white">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+    <!-- Hero Spotlight Banner (Hidden when searching) -->
+    <section id="heroSection" class="relative rounded-3xl overflow-hidden border border-purple-500/25 shadow-2xl shadow-purple-950/60">
+      <div class="absolute inset-0">
+        <img id="heroBackdrop" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1600&q=80" alt="Hero Banner" class="w-full h-full object-cover object-center opacity-45 scale-105 transition-all duration-700" />
+        <div class="absolute inset-0 bg-gradient-to-r from-[#090414] via-[#0f0722]/90 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0f0722] via-transparent to-[#090414]/40"></div>
+      </div>
+
+      <div class="relative z-10 p-6 sm:p-10 md:p-12 lg:p-14 max-w-2xl space-y-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-600/40 border border-purple-400/40 text-purple-200 backdrop-blur-md">
+            🔥 Pilihan Editor MovieID
+          </span>
+          <span id="heroRating" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 border border-amber-400/40 text-amber-300 flex items-center gap-1">
+            ★ 8.9 IMDb
+          </span>
+          <span id="heroQuality" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 border border-emerald-400/40 text-emerald-300">
+            1080p BluRay
+          </span>
+        </div>
+
+        <h1 id="heroTitle" class="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight">
+          Dune: Part Two (2024)
+        </h1>
+
+        <div id="heroGenres" class="flex flex-wrap gap-2 text-xs text-purple-200/90">
+          <span class="px-2.5 py-1 rounded-lg bg-white/10">Sci-Fi</span>
+          <span class="px-2.5 py-1 rounded-lg bg-white/10">Adventure</span>
+          <span class="px-2.5 py-1 rounded-lg bg-white/10">Action</span>
+        </div>
+
+        <p id="heroSynopsis" class="text-sm sm:text-base text-purple-100/80 line-clamp-3 leading-relaxed">
+          Paul Atreides bersatu dengan Chani dan bangsa Fremen sambil merencanakan balas dendam terhadap para konspirator yang menghancurkan keluarganya.
+        </p>
+
+        <div class="pt-2 flex flex-wrap items-center gap-3">
+          <button id="heroPlayBtn" onclick="openPlayerById('dune-part-two-2024')" class="purple-gradient-btn px-6 py-3.5 rounded-2xl font-bold text-sm sm:text-base text-white flex items-center gap-2.5 shadow-xl shadow-purple-700/40 cursor-pointer">
+            <i data-lucide="play-circle" class="w-5 h-5 fill-white/20"></i>
+            <span>Tonton Sekarang</span>
+          </button>
+          <button id="heroWatchlistBtn" onclick="toggleWatchlistById('dune-part-two-2024')" class="px-5 py-3.5 rounded-2xl font-semibold text-sm bg-white/10 hover:bg-white/20 border border-purple-400/30 text-white flex items-center gap-2 backdrop-blur-md transition">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
+            <span>+ Watchlist</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Genre Filter Pills (Endpoint: GET /genres & GET /genres/{genre}) -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+          <span>Jelajahi Genre</span>
+        </h2>
+        <span class="text-xs text-purple-400/70 font-mono hidden sm:inline">GET /genres/{genre}</span>
+      </div>
+      <div id="genrePillsContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- Catalog Section Header & Pagination -->
+    <section class="space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-500/20 pb-4">
+        <div>
+          <h2 id="sectionTitle" class="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+            <span class="w-1.5 h-7 rounded-full bg-gradient-to-b from-purple-400 to-fuchsia-500"></span>
+            <span>Film Terbaru & Populer</span>
+          </h2>
+          <p id="sectionSubtitle" class="text-xs sm:text-sm text-purple-300/70 mt-1">
+            Menampilkan katalog streaming HD dari endpoint <code class="text-purple-300 bg-purple-950/80 px-1.5 py-0.5 rounded">/movies</code>
+          </p>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="paginationControls" class="flex items-center gap-2 self-start sm:self-auto">
+          <button id="prevPageBtn" onclick="changePage(-1)" disabled class="px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/30 text-xs font-semibold text-purple-200 disabled:opacity-40 hover:bg-purple-800/50 transition flex items-center gap-1">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i> Prev
+          </button>
+          <span id="pageIndicator" class="px-3 py-1.5 rounded-xl bg-purple-900/40 border border-purple-500/20 text-xs font-bold text-white">
+            Hal 1
+          </span>
+          <button id="nextPageBtn" onclick="changePage(1)" class="px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/30 text-xs font-semibold text-purple-200 hover:bg-purple-800/50 transition flex items-center gap-1">
+            Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading Skeletons -->
+      <div id="loadingGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+        <!-- Generated by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-16 text-center space-y-4 glass-card rounded-3xl p-8">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-purple-900/50 border border-purple-500/30 flex items-center justify-center text-purple-300">
+          <i data-lucide="film" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Tidak ada tayangan ditemukan</h3>
+        <p id="emptyStateDesc" class="text-sm text-purple-300/75 max-w-md mx-auto">
+          Coba gunakan kata kunci lain atau periksa koneksi server lk21-api Anda pada menu pengaturan.
+        </p>
+        <button onclick="switchCategory('home')" class="purple-gradient-btn px-5 py-2.5 rounded-xl text-sm font-semibold text-white">
+          Kembali ke Beranda
+        </button>
+      </div>
+
+      <!-- Movie / Series Cards Grid -->
+      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+        <!-- Cards rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-purple-500/20 bg-[#090414]/90 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-purple-300/70">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg purple-gradient-btn flex items-center justify-center">
+          <i data-lucide="play" class="w-3.5 h-3.5 text-white fill-white"></i>
+        </div>
+        <span class="font-display font-bold text-base text-white">Movie<span class="text-gradient">ID</span></span>
+        <span>— Tema Ungu Gradient Modern</span>
+      </div>
+      <p class="text-center md:text-right">
+        Terintegrasi dengan REST API <span class="text-purple-300 font-mono">lk21-api (febriadj)</span> • Mendukung Movie, Series, Genre & Live Search.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: VIDEO PLAYER & DETAIL MODAL (/movies/{id} & /series/{id})    -->
+  <!-- ===================================================================== -->
+  <div id="playerModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-[#06020e]/90 backdrop-blur-xl p-3 sm:p-6">
+    <div class="max-w-5xl mx-auto glass-card rounded-3xl overflow-hidden shadow-2xl border border-purple-500/40 my-4">
+      
+      <!-- Modal Top Bar -->
+      <div class="flex items-center justify-between px-5 py-4 bg-[#120726] border-b border-purple-500/25">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span id="playerTypeBadge" class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold uppercase bg-purple-600 text-white shrink-0">MOVIE</span>
+          <h3 id="playerModalTitle" class="font-display font-bold text-base sm:text-lg text-white truncate">Memuat Judul...</h3>
+        </div>
+        <button onclick="closePlayerModal()" class="p-2 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white transition shrink-0" title="Tutup Pemutar">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Video Viewport (16:9 Responsive) -->
+      <div class="relative w-full aspect-video bg-black">
+        <iframe 
+          id="streamIframe" 
+          src="" 
+          class="w-full h-full border-0" 
+          allowfullscreen 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        ></iframe>
+        
+        <!-- Fallback Demo Video Player Overlay (jika URL stream dari demo mode atau iframe kosong) -->
+        <div id="demoVideoOverlay" class="hidden absolute inset-0 bg-gradient-to-br from-[#0f0722] via-[#1c0938] to-[#090414] flex flex-col items-center justify-center p-6 text-center">
+          <video id="html5DemoPlayer" controls class="w-full h-full max-h-[480px] rounded-xl bg-black shadow-2xl">
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </div>
+
+      <!-- Server / Provider Switcher & Series Episode Selector -->
+      <div class="p-5 sm:p-6 space-y-6 bg-[#0e061e]">
+        
+        <!-- Provider Buttons -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-purple-500/20">
+          <div class="flex flex-wrap items-center gap-2" id="providerButtonsContainer">
+            <span class="text-xs font-semibold text-purple-300 mr-1 flex items-center gap-1">
+              <i data-lucide="server" class="w-3.5 h-3.5 text-purple-400"></i> Server Stream:
+            </span>
+            <!-- Server pills injected here -->
+          </div>
+
+          <button id="modalWatchlistBtn" onclick="toggleWatchlistCurrent()" class="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 text-white transition flex items-center gap-1.5 self-start sm:self-auto">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
+            <span>Simpan ke Watchlist</span>
+          </button>
+        </div>
+
+        <!-- Series Season & Episode Picker (Only shown for Series) -->
+        <div id="seriesEpisodeSection" class="hidden p-4 rounded-2xl bg-purple-950/40 border border-purple-500/25 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+              <span>Pilih Season & Episode</span>
+            </h4>
+            <select id="seasonSelect" onchange="renderEpisodesForSeason()" class="px-3 py-1.5 rounded-xl bg-[#180a33] border border-purple-500/40 text-xs font-semibold text-white focus:outline-none">
+              <option value="1">Season 1</option>
+            </select>
+          </div>
+          <div id="episodeButtonsGrid" class="flex flex-wrap gap-2">
+            <!-- Episode buttons injected here -->
+          </div>
+        </div>
+
+        <!-- Movie Metadata & Synopsis -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="hidden md:block">
+            <img id="playerPoster" src="" alt="Poster" class="w-full rounded-2xl border border-purple-500/30 shadow-lg object-cover aspect-[2/3]" />
+          </div>
+          <div class="md:col-span-3 space-y-4">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span id="playerRatingBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold">★ 8.5</span>
+              <span id="playerQualityBadge" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold">1080p</span>
+              <span id="playerDurationBadge" class="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-200">128 Menit</span>
+              <span id="playerReleaseBadge" class="px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-200">2025</span>
+            </div>
+
+            <div id="playerGenresList" class="flex flex-wrap gap-1.5"></div>
+
+            <div>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Sinopsis</h4>
+              <p id="playerSynopsis" class="text-sm text-purple-100/85 leading-relaxed"></p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+              <div class="p-3 rounded-xl bg-white/5 border border-purple-500/15">
+                <span class="text-purple-400 block mb-0.5">Sutradara (Directors)</span>
+                <span id="playerDirectors" class="text-white font-medium">-</span>
+              </div>
+              <div class="p-3 rounded-xl bg-white/5 border border-purple-500/15">
+                <span class="text-purple-400 block mb-0.5">Pemeran (Casts)</span>
+                <span id="playerCasts" class="text-white font-medium">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: PENGATURAN AKUN & KONFIGURASI LK21-API                       -->
+  <!-- ===================================================================== -->
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-[#06020e]/85 backdrop-blur-lg p-4 flex items-center justify-center">
+    <div class="max-w-lg w-full glass-card rounded-3xl overflow-hidden border border-purple-500/40 shadow-2xl">
+      
+      <div class="flex items-center justify-between px-6 py-4 bg-[#14082b] border-b border-purple-500/25">
+        <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-purple-400"></i>
+          <span>Pengaturan Akun & API</span>
+        </h3>
+        <button onclick="closeSettingsModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-purple-500/20 bg-[#100622]">
+        <button id="tabProfileBtn" onclick="switchSettingsTab('profile')" class="flex-1 py-3 text-xs sm:text-sm font-bold text-white border-b-2 border-purple-500 bg-purple-600/10">
+          👤 Profil & Preferensi
+        </button>
+        <button id="tabApiBtn" onclick="switchSettingsTab('api')" class="flex-1 py-3 text-xs sm:text-sm font-semibold text-purple-300 hover:text-white">
+          🔌 Koneksi LK21-API
+        </button>
+      </div>
+
+      <!-- Tab 1: Profile Settings -->
+      <div id="settingsProfilePanel" class="p-6 space-y-5">
+        <div>
+          <label class="block text-xs font-semibold text-purple-300 mb-2">Pilih Avatar</label>
+          <div class="flex gap-2.5" id="avatarPicker">
+            <button type="button" onclick="selectAvatar('🎬')" class="avatar-opt w-11 h-11 rounded-xl bg-purple-900/60 border-2 border-purple-400 text-xl flex items-center justify-center">🎬</button>
+            <button type="button" onclick="selectAvatar('👾')" class="avatar-opt w-11 h-11 rounded-xl bg-purple-950/60 border border-purple-500/30 text-xl flex items-center justify-center">👾</button>
+            <button type="button" onclick="selectAvatar('🍿')" class="avatar-opt w-11 h-11 rounded-xl bg-purple-950/60 border border-purple-500/30 text-xl flex items-center justify-center">🍿</button>
+            <button type="button" onclick="selectAvatar('🦊')" class="avatar-opt w-11 h-11 rounded-xl bg-purple-950/60 border border-purple-500/30 text-xl flex items-center justify-center">🦊</button>
+            <button type="button" onclick="selectAvatar('🚀')" class="avatar-opt w-11 h-11 rounded-xl bg-purple-950/60 border border-purple-500/30 text-xl flex items-center justify-center">🚀</button>
+          </div>
+        </div>
+
+        <div>
+          <label for="inputDisplayName" class="block text-xs font-semibold text-purple-300 mb-1.5">Nama Tampilan</label>
+          <input type="text" id="inputDisplayName" value="Sobat MovieID" class="w-full px-4 py-2.5 rounded-xl bg-[#160a2c] border border-purple-500/30 text-sm text-white focus:outline-none focus:border-purple-400" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="inputQuality" class="block text-xs font-semibold text-purple-300 mb-1.5">Kualitas Default</label>
+            <select id="inputQuality" class="w-full px-3.5 py-2.5 rounded-xl bg-[#160a2c] border border-purple-500/30 text-sm text-white focus:outline-none">
+              <option value="1080p HD">1080p Full HD</option>
+              <option value="720p HD">720p HD</option>
+              <option value="480p SD">480p Hemat Kuota</option>
+            </select>
+          </div>
+          <div>
+            <label for="inputAutoplay" class="block text-xs font-semibold text-purple-300 mb-1.5">Putar Otomatis</label>
+            <select id="inputAutoplay" class="w-full px-3.5 py-2.5 rounded-xl bg-[#160a2c] border border-purple-500/30 text-sm text-white focus:outline-none">
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button onclick="saveUserSettings()" class="purple-gradient-btn w-full py-3 rounded-xl font-bold text-sm text-white shadow-lg">
+            Simpan Pengaturan Akun
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 2: LK21-API Endpoint Settings -->
+      <div id="settingsApiPanel" class="hidden p-6 space-y-5">
+        <div class="p-3.5 rounded-2xl bg-purple-900/30 border border-purple-500/30 text-xs text-purple-200 space-y-1">
+          <p class="font-bold text-white">Integrasi Backend lk21-api</p>
+          <p>Masukkan URL server <code class="text-purple-300">lk21-api</code> yang sedang berjalan (lokal maupun cloud). Jika offline, MovieID otomatis memakai <strong>Mode Demo JSON</strong>.</p>
+        </div>
+
+        <div>
+          <label for="inputApiBaseUrl" class="block text-xs font-semibold text-purple-300 mb-1.5">Base URL API</label>
+          <input type="url" id="inputApiBaseUrl" placeholder="http://localhost:8080" class="w-full px-4 py-2.5 rounded-xl bg-[#160a2c] border border-purple-500/30 text-sm font-mono text-white focus:outline-none focus:border-purple-400" />
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <button type="button" onclick="document.getElementById('inputApiBaseUrl').value='http://localhost:8080'" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-mono text-purple-300">http://localhost:8080</button>
+            <button type="button" onclick="document.getElementById('inputApiBaseUrl').value='http://127.0.0.1:8080'" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-mono text-purple-300">http://127.0.0.1:8080</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-purple-500/20">
+          <span class="text-xs text-purple-200">Status Koneksi Saat Ini:</span>
+          <span id="modalApiStatusBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300">Mode Demo</span>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="saveApiSettings()" class="purple-gradient-btn flex-1 py-3 rounded-xl font-bold text-sm text-white shadow-lg">
+            Hubungkan & Muat Ulang Data
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: PANDUAN LANGKAH DEPLOYMENT LK21-API                          -->
+  <!-- ===================================================================== -->
+  <div id="deployGuideModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-[#06020e]/85 backdrop-blur-lg p-4 flex items-center justify-center">
+    <div class="max-w-2xl w-full glass-card rounded-3xl overflow-hidden border border-purple-500/40 shadow-2xl my-6">
+      <div class="flex items-center justify-between px-6 py-4 bg-[#14082b] border-b border-purple-500/25">
+        <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+          <i data-lucide="rocket" class="w-5 h-5 text-purple-400"></i>
+          <span>Langkah Menjalankan Backend LK21-API</span>
+        </h3>
+        <button onclick="closeDeployGuideModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4 text-xs sm:text-sm text-purple-100/90 max-h-[75vh] overflow-y-auto">
+        <div class="p-4 rounded-2xl bg-purple-950/50 border border-purple-500/25 space-y-2">
+          <p class="font-bold text-purple-300">1. Ekstrak & Masuk ke Folder Project API</p>
+          <pre class="p-3 rounded-xl bg-[#090414] text-emerald-300 font-mono text-xs overflow-x-auto">cd lk21-api-master
+cp .env.example .env</pre>
+        </div>
+        <div class="p-4 rounded-2xl bg-purple-950/50 border border-purple-500/25 space-y-2">
+          <p class="font-bold text-purple-300">2. Install Dependensi & Jalankan Server (Port 8080)</p>
+          <pre class="p-3 rounded-xl bg-[#090414] text-emerald-300 font-mono text-xs overflow-x-auto">npm install
+npm run build
+npm start</pre>
+        </div>
+        <div class="p-4 rounded-2xl bg-purple-950/50 border border-purple-500/25 space-y-2">
+          <p class="font-bold text-purple-300">3. Hubungkan ke Website MovieID</p>
+          <p class="text-purple-200/80">Setelah server aktif di <code class="text-white">http://localhost:8080</code> (atau domain hosting seperti Render/Railway/VPS), buka menu <strong>Konfigurasi Server API</strong> di atas dan klik <strong>Hubungkan & Muat Ulang Data</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 translate-y-4 opacity-0">
+    <div class="px-4 py-3 rounded-2xl bg-[#1c0b3b] border border-purple-400/50 text-white text-xs sm:text-sm font-medium shadow-2xl shadow-purple-950 flex items-center gap-2.5">
+      <span id="toastIcon">✨</span>
+      <span id="toastMessage">Berhasil disimpan!</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC (LK21-API + FALLBACK MOCK DATA)          -->
+  <!-- ===================================================================== -->
+  <script>
+    // 1. STATE & KONFIGURASI DEFAULT
+    const DEFAULT_STATE = {
+      apiBaseUrl: localStorage.getItem('movieid_api_url') || 'http://localhost:8080',
+      isApiOnline: false,
+      currentCategory: 'home', // home, movies, popular, top-rated, series, genre, search, watchlist
+      currentGenre: '',
+      currentQuery: '',
+      currentPage: 1,
+      activeMedia: null,
+      user: JSON.parse(localStorage.getItem('movieid_user')) || {
+        name: 'Sobat MovieID',
+        avatar: '🎬',
+        quality: '1080p HD',
+        autoplay: 'true'
+      },
+      watchlist: JSON.parse(localStorage.getItem('movieid_watchlist')) || []
+    };
+
+    let state = { ...DEFAULT_STATE };
+    let searchDebounceTimer = null;
+
+    // 2. DATA MOCK REALISTIS (SESUAI SKEMA JSON REPOSITORY lk21-api)
+    const MOCK_GENRES = [
+      { name: 'Action', slug: 'action' },
+      { name: 'Adventure', slug: 'adventure' },
+      { name: 'Animation', slug: 'animation' },
+      { name: 'Comedy', slug: 'comedy' },
+      { name: 'Crime', slug: 'crime' },
+      { name: 'Drama', slug: 'drama' },
+      { name: 'Fantasy', slug: 'fantasy' },
+      { name: 'Horror', slug: 'horror' },
+      { name: 'Mystery', slug: 'mystery' },
+      { name: 'Sci-Fi', slug: 'sci-fi' },
+      { name: 'Thriller', slug: 'thriller' }
+    ];
+
+    const MOCK_CATALOG = [
+      {
+        _id: 'dune-part-two-2024',
+        title: 'Dune: Part Two (2024)',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.9',
+        qualityResolution: '1080p BluRay',
+        duration: '166 Menit',
+        releaseDate: '2024',
+        genres: ['Sci-Fi', 'Adventure', 'Drama'],
+        synopsis: 'Paul Atreides bersatu dengan Chani dan bangsa Fremen sambil merencanakan balas dendam terhadap para konspirator yang menghancurkan keluarganya di planet gurun Arrakis.',
+        directors: ['Denis Villeneuve'],
+        casts: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson', 'Austin Butler'],
+        categoryTags: ['home', 'movies', 'popular', 'top-rated'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' },
+          { provider: 'Fembed Ultra', url: 'demo', quality: '720p' },
+          { provider: 'GDrive Direct', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'spider-man-across-the-spider-verse-2023',
+        title: 'Spider-Man: Across the Spider-Verse',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.7',
+        qualityResolution: '1080p WEB-DL',
+        duration: '140 Menit',
+        releaseDate: '2023',
+        genres: ['Animation', 'Action', 'Adventure'],
+        synopsis: 'Miles Morales melompat melintasi Multiverse dan bertemu dengan tim Spider-People yang bertugas melindungi eksistensi setiap semesta.',
+        directors: ['Joaquim Dos Santos', 'Kemp Powers'],
+        casts: ['Shameik Moore', 'Hailee Steinfeld', 'Oscar Isaac'],
+        categoryTags: ['home', 'popular', 'top-rated'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' },
+          { provider: 'StreamSB', url: 'demo', quality: '720p' }
+        ]
+      },
+      {
+        _id: 'oppenheimer-2023',
+        title: 'Oppenheimer (2023)',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.6',
+        qualityResolution: '1080p BluRay',
+        duration: '180 Menit',
+        releaseDate: '2023',
+        genres: ['Drama', 'Thriller', 'Mystery'],
+        synopsis: 'Kisah fisikawan teoretis Amerika J. Robert Oppenheimer dan perannya yang menentukan dalam pengembangan senjata nuklir pertama dalam Proyek Manhattan.',
+        directors: ['Christopher Nolan'],
+        casts: ['Cillian Murphy', 'Emily Blunt', 'Matt Damon', 'Robert Downey Jr.'],
+        categoryTags: ['home', 'top-rated', 'popular'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'the-last-of-us-season-1',
+        title: 'The Last of Us (Series)',
+        type: 'series',
+        posterImg: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.8',
+        qualityResolution: '1080p HD',
+        duration: '9 Episode',
+        releaseDate: '2023',
+        genres: ['Drama', 'Action', 'Sci-Fi', 'Thriller'],
+        synopsis: 'Dua puluh tahun setelah peradaban modern dihancurkan oleh wabah jamur Cordyceps, Joel disewa untuk menyelundupkan Ellie keluar dari zona karantina.',
+        directors: ['Craig Mazin', 'Neil Druckmann'],
+        casts: ['Pedro Pascal', 'Bella Ramsey', 'Anna Torv'],
+        categoryTags: ['home', 'series', 'popular', 'top-rated'],
+        seasons: [
+          { season: 1, totalEpisodes: 9 },
+          { season: 2, totalEpisodes: 7 }
+        ],
+        streams: [
+          { provider: 'SeriesServer 1', url: 'demo', quality: '1080p' },
+          { provider: 'SeriesServer 2', url: 'demo', quality: '720p' }
+        ]
+      },
+      {
+        _id: 'john-wick-chapter-4-2023',
+        title: 'John Wick: Chapter 4',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1514539079130-25950c84af65?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1514539079130-25950c84af65?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.2',
+        qualityResolution: '1080p BluRay',
+        duration: '169 Menit',
+        releaseDate: '2023',
+        genres: ['Action', 'Crime', 'Thriller'],
+        synopsis: 'John Wick menemukan jalan untuk mengalahkan High Table. Namun sebelum ia bisa memperoleh kebebasannya, Wick harus berhadapan dengan musuh baru yang memiliki aliansi global.',
+        directors: ['Chad Stahelski'],
+        casts: ['Keanu Reeves', 'Donnie Yen', 'Bill Skarsgård'],
+        categoryTags: ['home', 'movies', 'popular'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'jujutsu-kaisen-season-2',
+        title: 'Jujutsu Kaisen: Shibuya Incident',
+        type: 'series',
+        posterImg: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.9',
+        qualityResolution: '1080p Sub Indo',
+        duration: '23 Episode',
+        releaseDate: '2024',
+        genres: ['Animation', 'Action', 'Fantasy'],
+        synopsis: 'Insiden besar pecah di Shibuya pada malam Halloween ketika para penyihir Jujutsu terjebak dalam tirai penghalang yang dirancang untuk menyegel Satoru Gojo.',
+        directors: ['Shōta Goshozono'],
+        casts: ['Junya Enoki', 'Yūichi Nakamura', 'Takahiro Sakurai'],
+        categoryTags: ['home', 'series', 'top-rated'],
+        seasons: [
+          { season: 1, totalEpisodes: 24 },
+          { season: 2, totalEpisodes: 23 }
+        ],
+        streams: [
+          { provider: 'AnimeStream HD', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'interstellar-2014',
+        title: 'Interstellar (Remastered)',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1600&q=80',
+        rating: '9.0',
+        qualityResolution: '1080p IMAX',
+        duration: '169 Menit',
+        releaseDate: '2014',
+        genres: ['Sci-Fi', 'Adventure', 'Drama'],
+        synopsis: 'Sebuah tim penjelajah melakukan perjalanan melewati lubang cacing di luar angkasa dalam upaya memastikan kelangsungan hidup umat manusia.',
+        directors: ['Christopher Nolan'],
+        casts: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain'],
+        categoryTags: ['home', 'top-rated'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'exhuma-2024',
+        title: 'Exhuma (Pamyo) Sub Indo',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1505635552518-3448ff116af3?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1505635552518-3448ff116af3?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.1',
+        qualityResolution: '1080p WEB-DL',
+        duration: '134 Menit',
+        releaseDate: '2024',
+        genres: ['Horror', 'Mystery', 'Thriller'],
+        synopsis: 'Dua dukun muda, seorang ahli feng shui, dan petugas pemakaman bekerja sama merelokasi makam misterius dengan bayaran besar, namun memicu kutukan kuno.',
+        directors: ['Jang Jae-hyun'],
+        casts: ['Choi Min-sik', 'Kim Go-eun', 'Yoo Hae-jin', 'Lee Do-hyun'],
+        categoryTags: ['home', 'movies', 'popular'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'stranger-things-series',
+        title: 'Stranger Things (Complete)',
+        type: 'series',
+        posterImg: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.7',
+        qualityResolution: '1080p NF',
+        duration: '4 Season',
+        releaseDate: '2022',
+        genres: ['Sci-Fi', 'Horror', 'Mystery', 'Drama'],
+        synopsis: 'Ketika seorang anak laki-laki menghilang di kota kecil Hawkins, penduduk setempat mengungkap misteri eksperimen rahasia pemerintah dan kekuatan supranatural.',
+        directors: ['The Duffer Brothers'],
+        casts: ['Millie Bobby Brown', 'Finn Wolfhard', 'Winona Ryder'],
+        categoryTags: ['series', 'popular', 'top-rated'],
+        seasons: [
+          { season: 1, totalEpisodes: 8 },
+          { season: 2, totalEpisodes: 9 },
+          { season: 3, totalEpisodes: 8 },
+          { season: 4, totalEpisodes: 9 }
+        ],
+        streams: [
+          { provider: 'NetflixMirror HD', url: 'demo', quality: '1080p' }
+        ]
+      },
+      {
+        _id: 'deadpool-and-wolverine-2024',
+        title: 'Deadpool & Wolverine (2024)',
+        type: 'movie',
+        posterImg: 'https://images.unsplash.com/photo-1608889175123-8ee362201f81?auto=format&fit=crop&w=600&q=80',
+        backdropImg: 'https://images.unsplash.com/photo-1608889175123-8ee362201f81?auto=format&fit=crop&w=1600&q=80',
+        rating: '8.3',
+        qualityResolution: '1080p HD',
+        duration: '128 Menit',
+        releaseDate: '2024',
+        genres: ['Action', 'Comedy', 'Sci-Fi'],
+        synopsis: 'Wade Wilson yang tengah menjalani kehidupan tenang tiba-tiba ditarik oleh TVA dan harus bekerja sama dengan Wolverine dari semesta lain demi menyelamatkan dunianya.',
+        directors: ['Shawn Levy'],
+        casts: ['Ryan Reynolds', 'Hugh Jackman', 'Emma Corrin'],
+        categoryTags: ['home', 'movies', 'popular'],
+        streams: [
+          { provider: 'Hydrax VIP', url: 'demo', quality: '1080p' }
+        ]
+      }
+    ];
+
+    // 3. HELPER FETCH KE LK21-API DENGAN FALLBACK OTOMATIS
+    async function fetchFromLk21Api(endpointPath) {
+      const cleanBase = state.apiBaseUrl.replace(/\/+$/, '');
+      const fullUrl = `${cleanBase}${endpointPath}`;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      try {
+        const response = await fetch(fullUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        updateApiStatus(true);
+        return data;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        updateApiStatus(false);
+        return null;
+      }
+    }
+
+    function updateApiStatus(isOnline) {
+      state.isApiOnline = isOnline;
+      const dot = document.getElementById('apiStatusDot');
+      const text = document.getElementById('apiStatusText');
+      const badge = document.getElementById('apiEndpointBadge');
+      const modalBadge = document.getElementById('modalApiStatusBadge');
+
+      badge.textContent = state.apiBaseUrl;
+
+      if (isOnline) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]';
+        text.textContent = 'Terhubung ke LK21-API Live';
+        if (modalBadge) {
+          modalBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300';
+          modalBadge.textContent = 'Online (Live JSON)';
+        }
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-purple-400 animate-pulse';
+        text.textContent = 'Mode Demo Aktif (Fallback JSON LK21)';
+        if (modalBadge) {
+          modalBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300';
+          modalBadge.textContent = 'Mode Demo (Server Lokal Offline)';
+        }
+      }
+    }
+
+    // 4. INISIALISASI HALAMAN & GENRE PILLS
+    async function initApp() {
+      lucide.createIcons();
+      applyUserProfileToUI();
+      updateWatchlistBadges();
+
+      // Muat daftar genre dari GET /genres atau fallback
+      let genresData = await fetchFromLk21Api('/genres');
+      if (!Array.isArray(genresData) || genresData.length === 0) {
+        genresData = MOCK_GENRES;
+      }
+      renderGenrePills(genresData);
+
+      // Muat katalog awal
+      await loadCatalog();
+    }
+
+    function renderGenrePills(genres) {
+      const container = document.getElementById('genrePillsContainer');
+      const allBtn = `
+        <button onclick="switchCategory('home')" class="genre-pill shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition ${state.currentCategory !== 'genre' ? 'purple-gradient-btn text-white shadow-md' : 'bg-purple-950/60 border border-purple-500/25 text-purple-200 hover:bg-purple-800/40'}">
+          Semua
+        </button>
+      `;
+
+      const pills = genres.map(g => {
+        const name = g.name || g;
+        const slug = (g.slug || name).toLowerCase();
+        const isActive = state.currentCategory === 'genre' && state.currentGenre === slug;
+        return `
+          <button onclick="selectGenre('${slug}', '${name}')" class="genre-pill shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition ${isActive ? 'purple-gradient-btn text-white shadow-md' : 'bg-purple-950/60 border border-purple-500/25 text-purple-200 hover:bg-purple-800/40'}">
+            ${name}
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = allBtn + pills;
+    }
+
+    // 5. NAVIGASI KATEGORI & PEMUATAN KATALOG
+    async function switchCategory(category) {
+      state.currentCategory = category;
+      state.currentPage = 1;
+      if (category !== 'search') {
+        state.currentQuery = '';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearchBtn').classList.add('hidden');
+      }
+
+      // Update active nav style
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.dataset.nav === category) {
+          btn.className = 'nav-btn px-3.5 py-2 rounded-xl text-sm font-semibold bg-purple-600/25 text-white border border-purple-500/40 transition';
+        } else {
+          btn.className = 'nav-btn px-3.5 py-2 rounded-xl text-sm font-medium text-purple-200/80 hover:text-white hover:bg-purple-800/25 transition';
+        }
+      });
+
+      // Toggle Hero visibility
+      const hero = document.getElementById('heroSection');
+      if (category === 'home') {
+        hero.classList.remove('hidden');
+      } else {
+        hero.classList.add('hidden');
+      }
+
+      renderGenrePills(MOCK_GENRES);
+      await loadCatalog();
+    }
+
+    async function selectGenre(slug, label) {
+      state.currentCategory = 'genre';
+      state.currentGenre = slug;
+      state.currentPage = 1;
+      document.getElementById('heroSection').classList.add('hidden');
+      renderGenrePills(MOCK_GENRES);
+      await loadCatalog(label);
+    }
+
+    async function changePage(delta) {
+      const next = state.currentPage + delta;
+      if (next < 1) return;
+      state.currentPage = next;
+      await loadCatalog();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function loadCatalog(customLabel = '') {
+      showLoading(true);
+      const sectionTitle = document.getElementById('sectionTitle');
+      const sectionSubtitle = document.getElementById('sectionSubtitle');
+      const pageIndicator = document.getElementById('pageIndicator');
+      const prevBtn = document.getElementById('prevPageBtn');
+
+      pageIndicator.textContent = `Hal ${state.currentPage}`;
+      prevBtn.disabled = state.currentPage <= 1;
+
+      let endpoint = `/movies?page=${state.currentPage}`;
+      let titleLabel = 'Film Terbaru & Populer';
+      let subLabel = `Endpoint aktif: GET /movies?page=${state.currentPage}`;
+
+      if (state.currentCategory === 'movies') {
+        endpoint = `/movies?page=${state.currentPage}`;
+        titleLabel = 'Film Terbaru (Latest Releases)';
+        subLabel = `Endpoint aktif: GET /movies?page=${state.currentPage}`;
+      } else if (state.currentCategory === 'popular') {
+        endpoint = `/popular/movies?page=${state.currentPage}`;
+        titleLabel = 'Film Paling Populer';
+        subLabel = `Endpoint aktif: GET /popular/movies?page=${state.currentPage}`;
+      } else if (state.currentCategory === 'top-rated') {
+        endpoint = `/top-rated/movies?page=${state.currentPage}`;
+        titleLabel = 'Rating Tertinggi (Top Rated)';
+        subLabel = `Endpoint aktif: GET /top-rated/movies?page=${state.currentPage}`;
+      } else if (state.currentCategory === 'series') {
+        endpoint = `/series?page=${state.currentPage}`;
+        titleLabel = 'Series & Drama Terbaru';
+        subLabel = `Endpoint aktif: GET /series?page=${state.currentPage}`;
+      } else if (state.currentCategory === 'genre') {
+        endpoint = `/genres/${state.currentGenre}?page=${state.currentPage}`;
+        titleLabel = `Genre: ${customLabel || state.currentGenre.toUpperCase()}`;
+        subLabel = `Endpoint aktif: GET /genres/${state.currentGenre}?page=${state.currentPage}`;
+      } else if (state.currentCategory === 'search') {
+        endpoint = `/search/${encodeURIComponent(state.currentQuery)}`;
+        titleLabel = `Hasil Pencarian: "${state.currentQuery}"`;
+        subLabel = `Endpoint aktif: GET /search/${state.currentQuery}`;
+      } else if (state.currentCategory === 'watchlist') {
+        titleLabel = 'Daftar Tontonan Saya (Watchlist)';
+        subLabel = 'Tersimpan secara lokal di browser Anda';
+      }
+
+      sectionTitle.innerHTML = `<span class="w-1.5 h-7 rounded-full bg-gradient-to-b from-purple-400 to-fuchsia-500"></span><span>${titleLabel}</span>`;
+      sectionSubtitle.textContent = subLabel;
+
+      let items = [];
+
+      if (state.currentCategory === 'watchlist') {
+        items = state.watchlist;
+      } else {
+        const apiResult = await fetchFromLk21Api(endpoint);
+        if (Array.isArray(apiResult) && apiResult.length > 0) {
+          items = apiResult;
+        } else {
+          // Fallback filter dari MOCK_CATALOG
+          items = filterMockCatalog();
+        }
+      }
+
+      showLoading(false);
+      renderMediaGrid(items);
+    }
+
+    function filterMockCatalog() {
+      if (state.currentCategory === 'search') {
+        const q = state.currentQuery.toLowerCase();
+        return MOCK_CATALOG.filter(item =>
+          item.title.toLowerCase().includes(q) ||
+          item.genres.some(g => g.toLowerCase().includes(q))
+        );
+      }
+      if (state.currentCategory === 'genre') {
+        return MOCK_CATALOG.filter(item =>
+          item.genres.some(g => g.toLowerCase() === state.currentGenre.toLowerCase())
+        );
+      }
+      if (state.currentCategory === 'series') {
+        return MOCK_CATALOG.filter(item => item.type === 'series');
+      }
+      if (state.currentCategory === 'popular' || state.currentCategory === 'top-rated') {
+        return MOCK_CATALOG.filter(item => item.categoryTags.includes(state.currentCategory));
+      }
+      return MOCK_CATALOG;
+    }
+
+    function showLoading(isLoading) {
+      const loadingGrid = document.getElementById('loadingGrid');
+      const mediaGrid = document.getElementById('mediaGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      if (isLoading) {
+        emptyState.classList.add('hidden');
+        mediaGrid.classList.add('hidden');
+        loadingGrid.classList.remove('hidden');
+        loadingGrid.innerHTML = Array(10).fill(0).map(() => `
+          <div class="rounded-2xl overflow-hidden bg-purple-950/40 border border-purple-500/15 animate-pulse">
+            <div class="aspect-[2/3] bg-purple-900/40"></div>
+            <div class="p-3.5 space-y-2">
+              <div class="h-4 bg-purple-800/40 rounded w-3/4"></div>
+              <div class="h-3 bg-purple-800/30 rounded w-1/2"></div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        loadingGrid.classList.add('hidden');
+      }
+    }
+
+    function renderMediaGrid(items) {
+      const mediaGrid = document.getElementById('mediaGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      if (!items || items.length === 0) {
+        mediaGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      mediaGrid.classList.remove('hidden');
+
+      mediaGrid.innerHTML = items.map(item => {
+        const id = item._id || item.id;
+        const isSeries = item.type === 'series' || (item.episode !== undefined);
+        const typeBadge = isSeries ? 'SERIES' : 'MOVIE';
+        const quality = item.qualityResolution || 'HD';
+        const rating = item.rating || '8.0';
+        const genresText = Array.isArray(item.genres) ? item.genres.slice(0, 2).join(' • ') : 'Drama';
+        const inWatchlist = state.watchlist.some(w => (w._id || w.id) === id);
+
+        return `
+          <article class="glass-card rounded-2xl overflow-hidden flex flex-col group relative">
+            <div class="relative aspect-[2/3] overflow-hidden bg-[#14072b] cursor-pointer" onclick='openMediaPlayer(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+              <img 
+                src="${item.posterImg}" 
+                alt="${item.title}" 
+                loading="lazy"
+                onerror="this.src='https://placehold.co/400x600/1e0b36/c084fc?text=MovieID'"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-[#090414] via-transparent to-black/30 opacity-85"></div>
+
+              <!-- Top Badges -->
+              <div class="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1">
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider ${isSeries ? 'bg-fuchsia-600/90 text-white' : 'bg-purple-600/90 text-white'} backdrop-blur-md shadow">
+                  ${typeBadge}
+                </span>
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-black/70 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
+                  ${quality}
+                </span>
+              </div>
+
+              <!-- Hover Play Button -->
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-purple-950/40 backdrop-blur-[2px]">
+                <div class="w-12 h-12 rounded-full purple-gradient-btn flex items-center justify-center shadow-xl shadow-purple-600/50 scale-90 group-hover:scale-100 transition-transform">
+                  <i data-lucide="play" class="w-5 h-5 text-white fill-white ml-0.5"></i>
+                </div>
+              </div>
+
+              <!-- Bottom Rating & Watchlist -->
+              <div class="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-lg bg-black/75 text-amber-300 text-xs font-bold flex items-center gap-1">
+                  ★ ${rating}
+                </span>
+                <button 
+                  onclick='event.stopPropagation(); toggleWatchlistItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'
+                  class="p-1.5 rounded-lg ${inWatchlist ? 'bg-purple-600 text-white' : 'bg-black/70 text-purple-200 hover:bg-purple-600 hover:text-white'} transition"
+                  title="${inWatchlist ? 'Hapus dari Watchlist' : 'Tambah ke Watchlist'}"
+                >
+                  <i data-lucide="bookmark" class="w-3.5 h-3.5 ${inWatchlist ? 'fill-white' : ''}"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-3.5 flex-1 flex flex-col justify-between space-y-1.5 cursor-pointer" onclick='openMediaPlayer(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+              <h3 class="font-display font-bold text-sm text-white line-clamp-2 group-hover:text-purple-300 transition">
+                ${item.title}
+              </h3>
+              <p class="text-[11px] text-purple-300/70 truncate">${genresText}</p>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // 6. PENCARIAN REAL-TIME (GET /search/{title})
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      
+      if (val.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        if (val.length >= 2) {
+          state.currentCategory = 'search';
+          state.currentQuery = val;
+          state.currentPage = 1;
+          document.getElementById('heroSection').classList.add('hidden');
+          loadCatalog();
+        } else if (val.length === 0 && state.currentCategory === 'search') {
+          switchCategory('home');
+        }
+      }, 450);
+    });
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      switchCategory('home');
+    }
+
+    // 7. VIDEO PLAYER & DETAIL MODAL (/movies/{id} & /series/{id})
+    function openPlayerById(id) {
+      const found = MOCK_CATALOG.find(m => m._id === id) || MOCK_CATALOG[0];
+      openMediaPlayer(found);
+    }
+
+    async function openMediaPlayer(item) {
+      const id = item._id || item.id;
+      const isSeries = item.type === 'series' || (item.episode !== undefined);
+      state.activeMedia = item;
+
+      const modal = document.getElementById('playerModal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      // Set Initial UI
+      document.getElementById('playerTypeBadge').textContent = isSeries ? 'SERIES' : 'MOVIE';
+      document.getElementById('playerModalTitle').textContent = item.title;
+      document.getElementById('playerPoster').src = item.posterImg;
+      document.getElementById('playerRatingBadge').textContent = `★ ${item.rating || '8.5'} IMDb`;
+      document.getElementById('playerQualityBadge').textContent = item.qualityResolution || state.user.quality;
+      document.getElementById('playerDurationBadge').textContent = item.duration || '120 Menit';
+      document.getElementById('playerReleaseBadge').textContent = item.releaseDate || '2024';
+      document.getElementById('playerSynopsis').textContent = item.synopsis || 'Memuat detail sinopsis dari server lk21-api...';
+      document.getElementById('playerDirectors').textContent = Array.isArray(item.directors) ? item.directors.join(', ') : '-';
+      document.getElementById('playerCasts').textContent = Array.isArray(item.casts) ? item.casts.join(', ') : '-';
+
+      const genresList = document.getElementById('playerGenresList');
+      genresList.innerHTML = (item.genres || ['Action', 'Drama']).map(g =>
+        `<span class="px-2.5 py-1 rounded-lg bg-purple-900/50 border border-purple-500/30 text-xs text-purple-200">${g}</span>`
+      ).join('');
+
+      updateModalWatchlistButton();
+
+      // Fetch detail & streams jika API online
+      let detailData = null;
+      let streamProviders = item.streams || [];
+
+      if (state.isApiOnline) {
+        const detailEndpoint = isSeries ? `/series/${id}` : `/movies/${id}`;
+        const streamEndpoint = isSeries ? `/series/${id}/streams?season=1&episode=1` : `/movies/${id}/streams`;
+        
+        const [fetchedDetail, fetchedStreams] = await Promise.all([
+          fetchFromLk21Api(detailEndpoint),
+          fetchFromLk21Api(streamEndpoint)
+        ]);
+
+        if (fetchedDetail) {
+          detailData = fetchedDetail;
+          document.getElementById('playerSynopsis').textContent = fetchedDetail.synopsis || item.synopsis;
+          if (fetchedDetail.directors) document.getElementById('playerDirectors').textContent = fetchedDetail.directors.join(', ');
+          if (fetchedDetail.casts) document.getElementById('playerCasts').textContent = fetchedDetail.casts.join(', ');
+        }
+
+        if (Array.isArray(fetchedStreams) && fetchedStreams.length > 0) {
+          streamProviders = fetchedStreams;
+        }
+      }
+
+      // Series Season & Episode UI
+      const seriesSection = document.getElementById('seriesEpisodeSection');
+      if (isSeries) {
+        seriesSection.classList.remove('hidden');
+        const seasons = (detailData && detailData.seasons) || item.seasons || [{ season: 1, totalEpisodes: 8 }];
+        const seasonSelect = document.getElementById('seasonSelect');
+        seasonSelect.innerHTML = seasons.map(s => `<option value="${s.season}">Season ${s.season}</option>`).join('');
+        renderEpisodesForSeason(seasons);
+      } else {
+        seriesSection.classList.add('hidden');
+      }
+
+      renderStreamProviders(streamProviders);
+      lucide.createIcons();
+    }
+
+    function renderEpisodesForSeason(seasonsOverride) {
+      const seasonNum = parseInt(document.getElementById('seasonSelect').value || '1', 10);
+      const seasons = seasonsOverride || (state.activeMedia && state.activeMedia.seasons) || [{ season: 1, totalEpisodes: 8 }];
+      const currentSeasonObj = seasons.find(s => s.season === seasonNum) || { totalEpisodes: 8 };
+      const count = currentSeasonObj.totalEpisodes || 8;
+
+      const grid = document.getElementById('episodeButtonsGrid');
+      grid.innerHTML = Array.from({ length: count }, (_, idx) => {
+        const ep = idx + 1;
+        return `
+          <button onclick="selectSeriesEpisode(${seasonNum}, ${ep}, this)" class="ep-btn px-3.5 py-2 rounded-xl text-xs font-bold border transition ${ep === 1 ? 'purple-gradient-btn text-white border-transparent' : 'bg-[#180a33] border-purple-500/30 text-purple-200 hover:bg-purple-800/40'}">
+            Eps ${ep}
+          </button>
+        `;
+      }).join('');
+    }
+
+    async function selectSeriesEpisode(season, episode, btnEl) {
+      document.querySelectorAll('.ep-btn').forEach(b => {
+        b.className = 'ep-btn px-3.5 py-2 rounded-xl text-xs font-bold border transition bg-[#180a33] border-purple-500/30 text-purple-200 hover:bg-purple-800/40';
+      });
+      btnEl.className = 'ep-btn px-3.5 py-2 rounded-xl text-xs font-bold border transition purple-gradient-btn text-white border-transparent';
+
+      showToast(`Memuat Season ${season} Episode ${episode}...`, '🎬');
+
+      if (state.isApiOnline && state.activeMedia) {
+        const id = state.activeMedia._id || state.activeMedia.id;
+        const streams = await fetchFromLk21Api(`/series/${id}/streams?season=${season}&episode=${episode}`);
+        if (Array.isArray(streams) && streams.length > 0) {
+          renderStreamProviders(streams);
+          return;
+        }
+      }
+      activateStreamSource('demo');
+    }
+
+    function renderStreamProviders(providers) {
+      const container = document.getElementById('providerButtonsContainer');
+      const labelHtml = `
+        <span class="text-xs font-semibold text-purple-300 mr-1 flex items-center gap-1">
+          <i data-lucide="server" class="w-3.5 h-3.5 text-purple-400"></i> Server Stream:
+        </span>
+      `;
+
+      if (!providers || providers.length === 0) {
+        providers = [{ provider: 'MovieID Cloud HD', url: 'demo', quality: '1080p' }];
+      }
+
+      const buttonsHtml = providers.map((p, index) => {
+        const name = p.provider || `Server ${index + 1}`;
+        const url = p.url || 'demo';
+        return `
+          <button onclick="switchStreamProvider('${url}', this)" class="srv-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${index === 0 ? 'purple-gradient-btn text-white shadow' : 'bg-purple-950/80 border border-purple-500/30 text-purple-200 hover:bg-purple-800/40'}">
+            ${name}
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = labelHtml + buttonsHtml;
+      activateStreamSource(providers[0].url || 'demo');
+    }
+
+    function switchStreamProvider(url, btnEl) {
+      document.querySelectorAll('.srv-btn').forEach(b => {
+        b.className = 'srv-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-purple-950/80 border border-purple-500/30 text-purple-200 hover:bg-purple-800/40';
+      });
+      btnEl.className = 'srv-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition purple-gradient-btn text-white shadow';
+      activateStreamSource(url);
+    }
+
+    function activateStreamSource(url) {
+      const iframe = document.getElementById('streamIframe');
+      const demoOverlay = document.getElementById('demoVideoOverlay');
+      const html5Player = document.getElementById('html5DemoPlayer');
+
+      if (!url || url === 'demo') {
+        iframe.src = '';
+        iframe.classList.add('hidden');
+        demoOverlay.classList.remove('hidden');
+        if (state.user.autoplay === 'true') {
+          html5Player.play().catch(() => {});
+        }
+      } else {
+        html5Player.pause();
+        demoOverlay.classList.add('hidden');
+        iframe.classList.remove('hidden');
+        iframe.src = url;
+      }
+    }
+
+    function closePlayerModal() {
+      const modal = document.getElementById('playerModal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+      document.getElementById('streamIframe').src = '';
+      document.getElementById('html5DemoPlayer').pause();
+    }
+
+    // 8. WATCHLIST MANAGEMENT (LOCALSTORAGE)
+    function toggleWatchlistById(id) {
+      const item = MOCK_CATALOG.find(m => m._id === id);
+      if (item) toggleWatchlistItem(item);
+    }
+
+    function toggleWatchlistCurrent() {
+      if (state.activeMedia) {
+        toggleWatchlistItem(state.activeMedia);
+        updateModalWatchlistButton();
+      }
+    }
+
+    function toggleWatchlistItem(item) {
+      const id = item._id || item.id;
+      const existingIndex = state.watchlist.findIndex(w => (w._id || w.id) === id);
+
+      if (existingIndex > -1) {
+        state.watchlist.splice(existingIndex, 1);
+        showToast(`Dihapus dari Watchlist: ${item.title}`, '🗑️');
+      } else {
+        state.watchlist.unshift(item);
+        showToast(`Ditambahkan ke Watchlist: ${item.title}`, '💜');
+      }
+
+      localStorage.setItem('movieid_watchlist', JSON.stringify(state.watchlist));
+      updateWatchlistBadges();
+
+      if (state.currentCategory === 'watchlist') {
+        renderMediaGrid(state.watchlist);
+      } else {
+        loadCatalog();
+      }
+    }
+
+    function updateWatchlistBadges() {
+      const count = state.watchlist.length;
+      document.getElementById('watchlistCountBadge').textContent = count;
+      document.getElementById('mobileWatchlistCount').textContent = count;
+    }
+
+    function updateModalWatchlistButton() {
+      if (!state.activeMedia) return;
+      const id = state.activeMedia._id || state.activeMedia.id;
+      const inWatchlist = state.watchlist.some(w => (w._id || w.id) === id);
+      const btn = document.getElementById('modalWatchlistBtn');
+      btn.innerHTML = inWatchlist
+        ? `<i data-lucide="check" class="w-4 h-4 text-emerald-300"></i><span>Tersimpan di Watchlist</span>`
+        : `<i data-lucide="bookmark" class="w-4 h-4"></i><span>Simpan ke Watchlist</span>`;
+      lucide.createIcons();
+    }
+
+    // 9. PENGATURAN AKUN & API MODAL
+    function openSettingsModal(defaultTab = 'profile') {
+      document.getElementById('inputDisplayName').value = state.user.name;
+      document.getElementById('inputQuality').value = state.user.quality;
+      document.getElementById('inputAutoplay').value = state.user.autoplay;
+      document.getElementById('inputApiBaseUrl').value = state.apiBaseUrl;
+      selectAvatar(state.user.avatar, false);
+
+      switchSettingsTab(defaultTab);
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function switchSettingsTab(tab) {
+      const pPanel = document.getElementById('settingsProfilePanel');
+      const aPanel = document.getElementById('settingsApiPanel');
+      const pBtn = document.getElementById('tabProfileBtn');
+      const aBtn = document.getElementById('tabApiBtn');
+
+      if (tab === 'profile') {
+        pPanel.classList.remove('hidden');
+        aPanel.classList.add('hidden');
+        pBtn.className = 'flex-1 py-3 text-xs sm:text-sm font-bold text-white border-b-2 border-purple-500 bg-purple-600/10';
+        aBtn.className = 'flex-1 py-3 text-xs sm:text-sm font-semibold text-purple-300 hover:text-white';
+      } else {
+        pPanel.classList.add('hidden');
+        aPanel.classList.remove('hidden');
+        aBtn.className = 'flex-1 py-3 text-xs sm:text-sm font-bold text-white border-b-2 border-purple-500 bg-purple-600/10';
+        pBtn.className = 'flex-1 py-3 text-xs sm:text-sm font-semibold text-purple-300 hover:text-white';
+      }
+    }
+
+    let selectedAvatarTemp = state.user.avatar;
+    function selectAvatar(emoji, updateTemp = true) {
+      if (updateTemp) selectedAvatarTemp = emoji;
+      document.querySelectorAll('.avatar-opt').forEach(btn => {
+        if (btn.textContent.trim() === emoji) {
+          btn.className = 'avatar-opt w-11 h-11 rounded-xl bg-purple-700/70 border-2 border-purple-300 text-xl flex items-center justify-center scale-105 transition';
+        } else {
+          btn.className = 'avatar-opt w-11 h-11 rounded-xl bg-purple-950/60 border border-purple-500/30 text-xl flex items-center justify-center hover:bg-purple-800/40 transition';
+        }
+      });
+    }
+
+    function saveUserSettings() {
+      const name = document.getElementById('inputDisplayName').value.trim() || 'Sobat MovieID';
+      const quality = document.getElementById('inputQuality').value;
+      const autoplay = document.getElementById('inputAutoplay').value;
+
+      state.user = {
+        name,
+        avatar: selectedAvatarTemp,
+        quality,
+        autoplay
+      };
+
+      localStorage.setItem('movieid_user', JSON.stringify(state.user));
+      applyUserProfileToUI();
+      closeSettingsModal();
+      showToast('Profil akun MovieID berhasil diperbarui!', '✨');
+    }
+
+    function applyUserProfileToUI() {
+      document.getElementById('headerAvatar').textContent = state.user.avatar;
+      document.getElementById('headerUserName').textContent = state.user.name;
+      document.getElementById('headerQualityBadge').textContent = state.user.quality;
+    }
+
+    async function saveApiSettings() {
+      const url = document.getElementById('inputApiBaseUrl').value.trim() || 'http://localhost:8080';
+      state.apiBaseUrl = url;
+      localStorage.setItem('movieid_api_url', url);
+      closeSettingsModal();
+      showToast('Menghubungkan ke server LK21-API...', '🔌');
+      await loadCatalog();
+    }
+
+    // 10. UI HELPERS (MOBILE MENU, DEPLOY MODAL, TOAST)
+    function toggleMobileMenu() {
+      document.getElementById('mobileNavMenu').classList.toggle('hidden');
+    }
+
+    function openDeployGuideModal() {
+      document.getElementById('deployGuideModal').classList.remove('hidden');
+    }
+
+    function closeDeployGuideModal() {
+      document.getElementById('deployGuideModal').classList.add('hidden');
+    }
+
+    let toastTimeout = null;
+    function showToast(message, icon = '✨') {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastMessage').textContent = message;
+      document.getElementById('toastIcon').textContent = icon;
+
+      toast.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+      }, 3000);
+    }
+
+    // Jalankan aplikasi saat DOM siap
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
