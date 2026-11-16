@@ -1350,25 +1350,39 @@ npm start</pre>
     }
 
     function activateStreamSource(url) {
-      const iframe = document.getElementById('streamIframe');
-      const demoOverlay = document.getElementById('demoVideoOverlay');
-      const html5Player = document.getElementById('html5DemoPlayer');
+  const iframe = document.getElementById('streamIframe');
+  const demoOverlay = document.getElementById('demoVideoOverlay');
+  const html5Player = document.getElementById('html5DemoPlayer');
 
-      if (!url || url === 'demo') {
-        iframe.src = '';
-        iframe.classList.add('hidden');
-        demoOverlay.classList.remove('hidden');
-        if (state.user.autoplay === 'true') {
-          html5Player.play().catch(() => {});
-        }
-      } else {
-        html5Player.pause();
-        demoOverlay.classList.add('hidden');
-        iframe.classList.remove('hidden');
-        iframe.src = url;
-      }
+  // tombol "Buka di tab baru" (dibuat sekali, dipakai ulang)
+  let openLink = document.getElementById('openStreamLink');
+  if (!openLink) {
+    openLink = document.createElement('a');
+    openLink.id = 'openStreamLink';
+    openLink.target = '_blank';
+    openLink.rel = 'noopener noreferrer';
+    openLink.className = 'inline-flex items-center gap-1 mt-2 px-3.5 py-1.5 rounded-xl text-xs font-bold purple-gradient-btn text-white';
+    openLink.textContent = '↗ Buka pemutar di tab baru';
+    document.getElementById('providerButtonsContainer').after(openLink);
+  }
+
+  if (!url || url === 'demo') {
+    openLink.classList.add('hidden');
+    iframe.src = '';
+    iframe.classList.add('hidden');
+    demoOverlay.classList.remove('hidden');
+    if (state.user.autoplay === 'true') {
+      html5Player.play().catch(() => {});
     }
-
+  } else {
+    openLink.href = url;
+    openLink.classList.remove('hidden');
+    html5Player.pause();
+    demoOverlay.classList.add('hidden');
+    iframe.classList.remove('hidden');
+    iframe.src = url;
+  }
+}
     function closePlayerModal() {
       const modal = document.getElementById('playerModal');
       modal.classList.add('hidden');
