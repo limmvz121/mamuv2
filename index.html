@@ -1375,13 +1375,20 @@ npm start</pre>
       html5Player.play().catch(() => {});
     }
   } else {
-    openLink.href = url;
-    openLink.classList.remove('hidden');
-    html5Player.pause();
-    demoOverlay.classList.add('hidden');
-    iframe.classList.remove('hidden');
-    iframe.src = url;
-  }
+  openLink.href = url;
+  openLink.classList.remove('hidden');
+  html5Player.pause();
+  demoOverlay.classList.add('hidden');
+  iframe.classList.remove('hidden');
+  iframe.removeAttribute('src');
+  iframe.srcdoc = `
+    <body style="margin:0;height:100vh;display:grid;place-items:center;background:#120726;color:#e9d5ff;font-family:sans-serif;text-align:center;padding:16px;box-sizing:border-box">
+      <div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">Pemutar tidak bisa disematkan di halaman ini</div>
+        <div style="font-size:13px;opacity:.8">Klik tombol <b>Buka pemutar di tab baru</b> di bawah untuk menonton.</div>
+      </div>
+    </body>`;
+}
 }
     function closePlayerModal() {
       const modal = document.getElementById('playerModal');
